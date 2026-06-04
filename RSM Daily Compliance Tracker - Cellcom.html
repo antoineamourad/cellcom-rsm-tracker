@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RSM Daily Compliance Tracker - Cellcom</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#fff;--bg2:#f7f7f5;--bg3:#f0f0ec;--brd:rgba(0,0,0,.10);--brd2:rgba(0,0,0,.18);--txt:#1a1a18;--txt2:#5a5a56;--txt3:#9a9a94;--gbg:#EAF3DE;--gtxt:#27500A;--gbdr:#3B6D11;--abg:#FAEEDA;--atxt:#633806;--abdr:#854F0B;--rbg:#FCEBEB;--rtxt:#791F1F;--rbdr:#A32D2D;--bbg:#E6F1FB;--btxt:#0C447C;--bbdr:#185FA5;--r:8px;--rl:12px}
+@media(prefers-color-scheme:dark){:root{--bg:#1c1c1a;--bg2:#242422;--bg3:#2c2c2a;--brd:rgba(255,255,255,.10);--brd2:rgba(255,255,255,.18);--txt:#f0f0ec;--txt2:#a8a8a2;--txt3:#68685e;--gbg:#173404;--gtxt:#C0DD97;--abg:#412402;--atxt:#FAC775;--rbg:#501313;--rtxt:#F7C1C1;--bbg:#042C53;--btxt:#B5D4F4}}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg3);color:var(--txt);font-size:14px;line-height:1.5;min-height:100vh}
+.page{max-width:820px;margin:0 auto;padding:2rem 1.25rem 4rem}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:12px}
+.brand{display:flex;align-items:center;gap:10px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--txt)}
+.bname{font-size:13px;font-weight:600;letter-spacing:.04em;color:var(--txt);text-transform:uppercase}
+.bsub{font-size:11px;color:var(--txt3);letter-spacing:.03em;text-transform:uppercase}
+.ctrl{background:var(--bg);border:.5px solid var(--brd);border-radius:var(--rl);padding:1rem 1.25rem;margin-bottom:1.25rem;display:flex;gap:1rem;flex-wrap:wrap;align-items:flex-end}
+.fg{display:flex;flex-direction:column;gap:5px}
+.fl{font-size:11px;font-weight:500;color:var(--txt3);text-transform:uppercase;letter-spacing:.05em}
+select,input[type=date],input[type=text]{font-family:inherit;font-size:13px;color:var(--txt);background:var(--bg2);border:.5px solid var(--brd2);border-radius:var(--r);padding:7px 10px;outline:none;transition:border-color .15s}
+select:focus,input:focus{border-color:var(--txt)}
+select{cursor:pointer;min-width:200px}
+input[type=date]{min-width:150px}
+.sumrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px;margin-bottom:1.25rem}
+.met{background:var(--bg);border:.5px solid var(--brd);border-radius:var(--r);padding:12px 14px}
+.mlb{font-size:11px;color:var(--txt3);font-weight:500;text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px}
+.mval{font-size:24px;font-weight:600}
+.mg{color:#3B6D11}.ma{color:#854F0B}.mr{color:#A32D2D}
+.cat{background:var(--bg);border:.5px solid var(--brd);border-radius:var(--rl);margin-bottom:10px;overflow:hidden}
+.cathead{display:flex;align-items:center;padding:12px 16px;gap:10px;cursor:pointer;user-select:none;border-bottom:.5px solid var(--brd)}
+.cathead:hover{background:var(--bg2)}
+.catico{font-size:15px;color:var(--txt3)}
+.cattitle{font-size:13px;font-weight:500;flex:1}
+.badge{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500;white-space:nowrap}
+.bg{background:var(--gbg);color:var(--gtxt)}
+.ba{background:var(--abg);color:var(--atxt)}
+.br{background:var(--rbg);color:var(--rtxt)}
+.bn{background:var(--bg2);color:var(--txt3);border:.5px solid var(--brd)}
+.chev{font-size:14px;color:var(--txt3);transition:transform .2s;display:inline-block}
+.chev.open{transform:rotate(180deg)}
+.catbody{padding:14px 16px}
+.crit{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:.5px solid var(--brd)}
+.crit:last-of-type{border-bottom:none}
+.ctxt{flex:1}
+.clb{font-size:13px;color:var(--txt)}
+.csub{font-size:11px;color:var(--txt3);margin-top:2px}
+.togs{display:flex;gap:4px;flex-shrink:0}
+.tbtn{font-family:inherit;font-size:11px;font-weight:500;border:.5px solid var(--brd2);background:transparent;border-radius:5px;padding:5px 10px;cursor:pointer;color:var(--txt2);transition:all .1s;white-space:nowrap}
+.tbtn:not(.tdone):not(.tpart):not(.tmiss):hover{background:var(--bg2)}
+.tdone,.tbtn.tdone{background:#3B6D11 !important;color:#fff !important;border-color:#3B6D11 !important;font-weight:600}
+.tpart,.tbtn.tpart{background:#CF8400 !important;color:#fff !important;border-color:#CF8400 !important;font-weight:600}
+.tmiss,.tbtn.tmiss{background:#C0392B !important;color:#fff !important;border-color:#C0392B !important;font-weight:600}
+.nota{width:100%;font-family:inherit;font-size:12px;color:var(--txt);background:var(--bg2);border:.5px solid var(--brd);border-radius:var(--r);padding:8px 10px;margin-top:10px;min-height:54px;resize:vertical;outline:none}
+.nota:focus{border-color:var(--brd2)}
+.nota::placeholder{color:var(--txt3)}
+.reason-wrap{display:none;margin-top:6px;padding:8px 10px;border-radius:var(--r);border:.5px solid var(--brd2)}
+.reason-wrap.show{display:block}
+.reason-wrap.miss-r{border-color:var(--rbdr);background:var(--rbg)}
+.reason-wrap.part-r{border-color:var(--abdr);background:var(--abg)}
+.reason-lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.miss-r .reason-lbl{color:var(--rtxt)}
+.part-r .reason-lbl{color:var(--atxt)}
+.reason-ta{width:100%;font-family:inherit;font-size:12px;color:var(--txt);background:transparent;border:none;outline:none;resize:none;min-height:40px;line-height:1.5}
+.reason-ta::placeholder{color:var(--txt3);opacity:.8}
+.reason-ta.err{outline:2px solid var(--rbdr)}
+.metrics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-top:12px;padding-top:12px;border-top:.5px solid var(--brd)}
+.metric-inp{display:flex;flex-direction:column;gap:4px}
+.metric-inp label{font-size:10px;font-weight:500;color:var(--txt3);text-transform:uppercase;letter-spacing:.04em;text-align:center}
+.metric-inp input[type=number]{font-family:inherit;font-size:18px;font-weight:600;color:var(--txt);background:var(--bg2);border:.5px solid var(--brd2);border-radius:var(--r);padding:8px 6px;outline:none;width:100%;text-align:center}
+.metric-inp input[type=number]:focus{border-color:var(--txt)}
+.metric-inp .munit{font-size:11px;color:var(--txt3);text-align:center}
+.cat-inputs{margin-top:12px;padding-top:12px;border-top:.5px solid var(--brd);display:flex;flex-direction:column;gap:10px}
+.cat-inp-row{display:flex;flex-direction:column;gap:4px}
+.cat-inp-row label{font-size:11px;font-weight:500;color:var(--txt3);text-transform:uppercase;letter-spacing:.04em}
+.cat-inp-row textarea{font-family:inherit;font-size:13px;color:var(--txt);background:var(--bg2);border:.5px solid var(--brd2);border-radius:var(--r);padding:8px 10px;outline:none;min-height:52px;resize:vertical}
+.cat-inp-row textarea:focus{border-color:var(--txt)}
+.cat-inp-row textarea::placeholder{color:var(--txt3)}
+.pwrap{height:3px;background:var(--bg3);border-radius:2px;margin-top:8px}
+.pfill{height:3px;border-radius:2px;transition:width .3s,background .3s}
+.acts{display:flex;gap:8px;margin:1.5rem 0 1rem;flex-wrap:wrap}
+.btn{font-family:inherit;font-size:13px;font-weight:500;padding:8px 18px;border-radius:var(--r);border:.5px solid var(--brd2);background:transparent;color:var(--txt);cursor:pointer;transition:background .12s,transform .1s}
+.btn:hover{background:var(--bg2)}
+.btn:active{transform:scale(.98)}
+.btnp{background:var(--txt);color:var(--bg);border-color:var(--txt)}
+.btnp:hover{opacity:.85;background:var(--txt)}
+.btng{color:var(--txt3);border-color:var(--brd)}
+.btnsp{background:#0078D4;color:#fff;border-color:#0078D4}
+.btnsp:hover{opacity:.87;background:#0078D4}
+.btnsp:disabled{opacity:.5;cursor:not-allowed}
+.spbar{border-radius:var(--r);padding:10px 14px;margin-bottom:1.25rem;font-size:13px;font-weight:500}
+.spbar.ok{background:var(--gbg);color:var(--gtxt);border:.5px solid var(--gbdr)}
+.spbar.err{background:var(--rbg);color:var(--rtxt);border:.5px solid var(--rbdr)}
+.spbar.sending{background:var(--bbg);color:var(--btxt);border:.5px solid var(--bbdr)}
+.sharebar{background:var(--bbg);border:.5px solid var(--bbdr);border-radius:var(--r);padding:10px 14px;margin-bottom:1.25rem;display:none;align-items:center;gap:10px}
+.shareurl{flex:1;font-size:12px;font-family:'Courier New',monospace;color:var(--btxt);word-break:break-all}
+.sharecopy{font-family:inherit;font-size:11px;font-weight:500;padding:5px 12px;border-radius:5px;border:.5px solid var(--bbdr);background:transparent;color:var(--btxt);cursor:pointer;white-space:nowrap}
+.sharecopy:hover{background:var(--bbg)}
+.repsec{display:none}
+.replb{font-size:11px;font-weight:600;color:var(--txt3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px}
+.repbox{background:var(--bg2);border:.5px solid var(--brd);border-radius:var(--rl);padding:1.25rem 1.5rem;font-size:12px;font-family:'Courier New',monospace;line-height:1.9;color:var(--txt);white-space:pre-wrap;word-break:break-word}
+.divider{border:none;border-top:.5px solid var(--brd);margin:1.5rem 0}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--txt);color:var(--bg);font-size:12px;font-weight:500;padding:8px 20px;border-radius:20px;opacity:0;transition:transform .25s,opacity .25s;pointer-events:none;z-index:999}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+@media(max-width:600px){.togs{flex-direction:column}select{min-width:160px}.ctrl{flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="topbar">
+    <div class="brand">
+      <div class="dot"></div>
+      <div>
+        <div class="bname">Cellcom Communications</div>
+        <div class="bsub">RSM Daily Compliance Tracker</div>
+      </div>
+    </div>
+  </div>
+  <div class="ctrl">
+    <div class="fg">
+      <div class="fl">RSM / District</div>
+      <select id="rsmsel">
+        <option value="RSM - District EAST">RSM - District EAST</option>
+        <option value="RSM - District NORTH EAST">RSM - District NORTH EAST</option>
+        <option value="RSM - District CENTRAL">RSM - District CENTRAL</option>
+        <option value="RSM - District CHARLIE">RSM - District CHARLIE</option>
+        <option value="RSM - District ECHO">RSM - District ECHO</option>
+        <option value="RSM - District DELTA">RSM - District DELTA</option>
+      </select>
+    </div>
+    <div class="fg">
+      <div class="fl">Store visited</div>
+      <select id="storeinp" onchange="onStoreChange()">
+<option value="">— Select store —</option>
+<option value="Bell Dolbeau">Bell Dolbeau</option>
+<option value="Bell Edmundston">Bell Edmundston</option>
+<option value="Bell St-Felicien">Bell St-Felicien</option>
+<option value="Bell Roberval">Bell Roberval</option>
+<option value="Bell Alma">Bell Alma</option>
+<option value="Bell Décarie">Bell Décarie</option>
+<option value="Bell St.Martin">Bell St.Martin</option>
+<option value="Bell Terrebonne">Bell Terrebonne</option>
+<option value="Bell Versailles">Bell Versailles</option>
+<option value="Bell Bourassa">Bell Bourassa</option>
+<option value="Bell Centre Laval">Bell Centre Laval</option>
+<option value="Bell Vertu">Bell Vertu</option>
+<option value="Bell Ste Dorothée">Bell Ste Dorothée</option>
+<option value="Bell des Sources">Bell des Sources</option>
+<option value="Bell Vaudreuil">Bell Vaudreuil</option>
+<option value="Bell Smiths Falls">Bell Smiths Falls</option>
+<option value="Bell Barrhaven">Bell Barrhaven</option>
+<option value="Bell Stittsville">Bell Stittsville</option>
+<option value="Bell Sorel">Bell Sorel</option>
+<option value="Bell Hunt Club">Bell Hunt Club</option>
+<option value="Bell Drummondville">Bell Drummondville</option>
+<option value="Bell Bank Street">Bell Bank Street</option>
+<option value="Bell Taylor Kidd">Bell Taylor Kidd</option>
+<option value="Bell Kingston center">Bell Kingston center</option>
+<option value="Bell Alliston">Bell Alliston</option>
+<option value="Bell Aurora">Bell Aurora</option>
+<option value="Bell Collingwood">Bell Collingwood</option>
+<option value="Bell Midland">Bell Midland</option>
+<option value="Bell Sudbury">Bell Sudbury</option>
+<option value="Bell Cobourg (Northumberland Mall)">Bell Cobourg (Northumberland Mall)</option>
+<option value="Bell Bowmanville (Clarington Place)">Bell Bowmanville (Clarington Place)</option>
+<option value="Bell Oshawa (Sobeys Plaza)">Bell Oshawa (Sobeys Plaza)</option>
+<option value="Bell Bolton">Bell Bolton</option>
+<option value="Bell Brockville">Bell Brockville</option>
+<option value="Bell Brampton">Bell Brampton</option>
+<option value="Bell Shoppers World Brampton">Bell Shoppers World Brampton</option>
+<option value="Bell Burlington">Bell Burlington</option>
+<option value="Bell Peterborough">Bell Peterborough</option>
+<option value="Bell Bracebridge">Bell Bracebridge</option>
+<option value="Bell Barrie">Bell Barrie</option>
+<option value="Bell North Bay">Bell North Bay</option>
+<option value="Bell Huntsville">Bell Huntsville</option>
+<option value="Bell Uxbridge">Bell Uxbridge</option>
+<option value="Bell Windsor">Bell Windsor</option>
+<option value="Bell Westmount Mall">Bell Westmount Mall</option>
+<option value="Bell Dundas">Bell Dundas</option>
+<option value="Bell Tillsonburg">Bell Tillsonburg</option>
+<option value="Bell Kitchener">Bell Kitchener</option>
+<option value="Bell Brantford">Bell Brantford</option>
+<option value="Bell Simcoe">Bell Simcoe</option>
+<option value="Bell Chagnon">Bell Chagnon</option>
+<option value="Bell Joliette">Bell Joliette</option>
+<option value="Bell Place St-Eustache">Bell Place St-Eustache</option>
+<option value="Bell St-Denis">Bell St-Denis</option>
+<option value="Bell St-Jovite">Bell St-Jovite</option>
+<option value="Bell Ste-Agathe">Bell Ste-Agathe</option>
+<option value="Bell St Sauveur">Bell St Sauveur</option>
+<option value="Bell St Jérôme">Bell St Jérôme</option>
+<option value="Bell Promenades Beauport">Bell Promenades Beauport</option>
+<option value="Virgin Bourassa">Virgin Bourassa</option>
+<option value="Virgin Drummondville">Virgin Drummondville</option>
+</select>
+<input type="hidden" id="storeEmail">
+    </div>
+    <div class="fg">
+      <div class="fl">Day of visit</div>
+      <input type="date" id="visitdt">
+    </div>
+  </div>
+  <div class="sumrow">
+    <div class="met"><div class="mlb">Score</div><div class="mval" id="sscore">-</div></div>
+    <div class="met"><div class="mlb">Complete</div><div class="mval mg" id="sdone">0</div></div>
+    <div class="met"><div class="mlb">Partial</div><div class="mval ma" id="spart">0</div></div>
+    <div class="met"><div class="mlb">Missed</div><div class="mval mr" id="smiss">0</div></div>
+    <div class="met"><div class="mlb">Not logged</div><div class="mval" id="sna" style="color:var(--txt3)">0</div></div>
+  </div>
+  <div id="catwrap"></div>
+  <hr class="divider">
+  <div class="acts">
+    <button class="btn btnsp" id="spbtn" onclick="submitToSharePoint()">&#8679; Submit to SharePoint</button>
+    <button class="btn" onclick="shareIt()">Share link</button>
+    <button class="btn" onclick="copyRep()">Copy report</button>
+    <button class="btn btng" onclick="resetAll()">Reset</button>
+  </div>
+  <div class="spbar" id="spbar" style="display:none"></div>
+  <div class="sharebar" id="sharebar">
+    <span class="shareurl" id="shareurl"></span>
+    <button class="sharecopy" onclick="copyUrl()">Copy URL</button>
+  </div>
+  <div class="repsec" id="repsec">
+    <div class="replb">CEO daily report</div>
+    <div class="repbox" id="repbox"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+var PA_URL = "https://default86467dd1ecc640e099e2460446a42f.31.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/1710cc7213b34b5593254b5d500b995e/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=k8V-e0XanbZZcoeKcEEsFsOtSSsRI6uYBtMTcoOw0I4";
+var STORES = [
+  {name:"Bell Dolbeau",email:"managerDolbeau@cellcom.ca"},
+  {name:"Bell Edmundston",email:"manageredmundston@cellcom.ca"},
+  {name:"Bell St-Felicien",email:"managerStFelicien@cellcom.ca"},
+  {name:"Bell Roberval",email:"managerRoberval@cellcom.ca"},
+  {name:"Bell Alma",email:"manageralma@cellcom.ca"},
+  {name:"Bell Décarie",email:"managerdecarie@cellcom.ca"},
+  {name:"Bell St.Martin",email:"managerst-martin@cellcom.ca"},
+  {name:"Bell Terrebonne",email:"managerTerreBonne@cellcom.ca"},
+  {name:"Bell Versailles",email:"managerversailles@cellcom.ca"},
+  {name:"Bell Bourassa",email:"managerbourassa@cellcom.ca"},
+  {name:"Bell Centre Laval",email:"managercentrelaval@cellcom.ca"},
+  {name:"Bell Vertu",email:"managercotevertu@cellcom.ca"},
+  {name:"Bell Ste Dorothée",email:"managerSteDorothee@cellcom.ca"},
+  {name:"Bell des Sources",email:"managerdessources@cellcom.ca"},
+  {name:"Bell Vaudreuil",email:"managervaudreuil@cellcom.ca"},
+  {name:"Bell Smiths Falls",email:"managersmithsfalls@cellcom.ca"},
+  {name:"Bell Barrhaven",email:"managerbarrhaven@cellcom.ca"},
+  {name:"Bell Stittsville",email:"managerstittsville@cellcom.ca"},
+  {name:"Bell Sorel",email:"managersorel@cellcom.ca"},
+  {name:"Bell Hunt Club",email:"managerhuntclub@cellcom.ca"},
+  {name:"Bell Drummondville",email:"managerDrummondville@cellcom.ca"},
+  {name:"Bell Bank Street",email:"managerbankstreet@cellcom.ca"},
+  {name:"Bell Taylor Kidd",email:"managertaylorkidd@cellcom.ca"},
+  {name:"Bell Kingston center",email:"managerkingstoncentre@cellcom.ca"},
+  {name:"Bell Alliston",email:"manageralliston@cellcom.ca"},
+  {name:"Bell Aurora",email:"manageraurora@cellcom.ca"},
+  {name:"Bell Collingwood",email:"managercollingwood@cellcom.ca"},
+  {name:"Bell Midland",email:"managermidland@cellcom.ca"},
+  {name:"Bell Sudbury",email:"managersudbury@cellcom.ca"},
+  {name:"Bell Cobourg (Northumberland Mall)",email:"managercobourg@cellcom.ca"},
+  {name:"Bell Bowmanville (Clarington Place)",email:"managerbowmanville@cellcom.ca"},
+  {name:"Bell Oshawa (Sobeys Plaza)",email:"manageroshawa@cellcom.ca"},
+  {name:"Bell Bolton",email:"managerbolton@cellcom.ca"},
+  {name:"Bell Brockville",email:"managerbrockville@cellcom.ca"},
+  {name:"Bell Brampton",email:"managerbrampton@cellcom.ca"},
+  {name:"Bell Shoppers World Brampton",email:"managerBrampton_SW@cellcom.ca"},
+  {name:"Bell Burlington",email:"managerBurlington@cellcom.ca"},
+  {name:"Bell Peterborough",email:"managerPeterborough@cellcom.ca"},
+  {name:"Bell Bracebridge",email:"managerbracebridge@cellcom.ca"},
+  {name:"Bell Barrie",email:"managerBarrie@cellcom.ca"},
+  {name:"Bell North Bay",email:"managerNorthBay@cellcom.ca"},
+  {name:"Bell Huntsville",email:"managerHuntsville@cellcom.ca"},
+  {name:"Bell Uxbridge",email:"managerUxbridge@cellcom.ca"},
+  {name:"Bell Windsor",email:"managerWindsor@cellcom.ca"},
+  {name:"Bell Westmount Mall",email:"managerWestmountmall@cellcom.ca"},
+  {name:"Bell Dundas",email:"managerDundas@cellcom.ca"},
+  {name:"Bell Tillsonburg",email:"managerTillsonburg@cellcom.ca"},
+  {name:"Bell Kitchener",email:"managerKitchener@cellcom.ca"},
+  {name:"Bell Brantford",email:"managerBrantford@cellcom.ca"},
+  {name:"Bell Simcoe",email:"managerSimcoe@cellcom.ca"},
+  {name:"Bell Chagnon",email:"managerchagnon@cellcom.ca"},
+  {name:"Bell Joliette",email:"managerjoliette@cellcom.ca"},
+  {name:"Bell Place St-Eustache",email:"managersteustache@cellcom.ca"},
+  {name:"Bell St-Denis",email:"managerstdenis@cellcom.ca"},
+  {name:"Bell St-Jovite",email:"managerstjovite@cellcom.ca"},
+  {name:"Bell Ste-Agathe",email:"managersteagathe@cellcom.ca"},
+  {name:"Bell St Sauveur",email:"managerstsauveur@cellcom.ca"},
+  {name:"Bell St Jérôme",email:"managerstjerome@cellcom.ca"},
+  {name:"Bell Promenades Beauport",email:"DirecteurBeauport@cellcom.ca"},
+  {name:"Virgin Bourassa",email:"managervirginbourassa@cellcom.ca"},
+  {name:"Virgin Drummondville",email:"managerVirginDrummondville@cellcom.ca"},
+];
+
+function onStoreChange(){
+  var sel=document.getElementById("storeinp");
+  var store=sel.value;
+  var email="";
+  for(var i=0;i<STORES.length;i++){if(STORES[i].name===store){email=STORES[i].email;break;}}
+  document.getElementById("storeEmail").value=email;
+}
+
+var CATS = [
+  {id:"floor",title:"Floor observation & live conversion",criteria:[
+    {id:"floor_obs",label:"Live transactions observed per visit",sub:"At least 1 live transaction watched per store visit"},
+    {id:"floor_debrief",label:"Immediate debrief with rep & manager",sub:"Conversion, x-sell, and objection handling covered"},
+    {id:"floor_notes",label:"Coaching notes shared with manager",sub:"Written - available for independent follow-up"},
+    {id:"floor_recap",label:"Daily recap sent to manager same day",sub:"Includes observations & specific KPIs"}
+  ]},
+  {id:"conversion",title:"Conversion & missed opportunity analysis",criteria:[
+    {id:"conv_rate",label:"Conversion rate reviewed pre-visit",sub:"Per store - not discovered on arrival"},
+    {id:"conv_missed",label:"Missed opportunity file reviewed",sub:"Cellcom metrics file analyzed before visit"},
+    {id:"conv_agenda",label:"Coaching agenda built from numbers",sub:"Data-driven, not reactive to recent events"},
+    {id:"conv_commit",label:"Manager committed to 1-2 actions",sub:"Written and logged at end of visit"}
+  ], metrics:[
+    {id:"conv_aga",   col:"Conv_AGA",          label:"AGA Conversion",    unit:"%"},
+    {id:"conv_brs",   col:"Conv_BRS",          label:"BRS Conversion",    unit:"%"},
+    {id:"conv_tv",    col:"Conv_TV_Attach",    label:"TV Attach",         unit:"%"},
+    {id:"conv_inet_aga", col:"Conv_Internet_AGA", label:"Internet on AGA", unit:"%"},
+    {id:"conv_inet_hug", col:"Conv_Internet_HUG", label:"Internet on HUG", unit:"%"}
+  ]},
+  {id:"xsell",title:"X-sell coaching (warranty, acc, BRSB)",criteria:[
+    {id:"xsell_gp",label:"Game Plan utilisation reviewed in-store",sub:"Warranty, accessories, BRSB coverage assessed"},
+    {id:"xsell_reh",label:"Objection scenarios rehearsed",sub:"Role-play conducted - not just discussed"},
+    {id:"xsell_mgr",label:"Manager coached to run session independently",sub:"Goal: manager leads daily, not RSM"},
+    {id:"xsell_inv",label:"Invoice verifications done with follow-up",sub:"Clear actions logged on missed opportunities"}
+  ]},
+  {id:"acct",title:"Manager accountability & target setting",criteria:[
+    {id:"acc_1on1",label:"1:1 conducted - metrics-first",sub:"Manager presents their numbers before RSM input"},
+    {id:"acc_tgt",label:"Targets set with specific $ / % and deadline",sub:"No vague direction - numbers and dates required"},
+    {id:"acc_wrt",label:"Written commitment captured",sub:"One documented commitment minimum"},
+    {id:"acc_rev",label:"Prior commitment reviewed at start",sub:"Impact measured - holds manager accountable"}
+  ], inputs:[
+    {id:"acct_set_target",    col:"Acct_Set_Target",          label:"Set target",                    placeholder:"e.g. 45% AGA conversion, $12k GM by EOM"},
+    {id:"acct_written_commit",col:"Acct_Written_Commitment",  label:"Written commitment from Manager", placeholder:"Exact commitment as stated by the manager"}
+  ]},
+  {id:"tasks",title:"Manager tasks & execution standard",criteria:[
+    {id:"tasks_rev",label:"Store Manager task list reviewed",sub:"Development-focused - not just auditing completion"},
+    {id:"tasks_act",label:"Clear actions assigned on missed tasks",sub:"Gaps addressed with coaching, not just acknowledgement"},
+    {id:"tasks_cad",label:"Structured review cadence maintained",sub:"Consistent timing - not ad hoc"}
+  ]}
+];
+
+var state = {};
+for (var i=0; i<CATS.length; i++) {
+  var cat = CATS[i];
+  for (var j=0; j<cat.criteria.length; j++) {
+    state[cat.criteria[j].id] = "na";
+  }
+  state["note_"+cat.id] = "";
+}
+
+function setToday() {
+  var d = new Date();
+  var mm = String(d.getMonth()+1).padStart(2,"0");
+  var dd = String(d.getDate()).padStart(2,"0");
+  document.getElementById("visitdt").value = d.getFullYear()+"-"+mm+"-"+dd;
+}
+
+function setStatus(id,val){
+  state[id]=val;
+  ["done","part","miss"].forEach(function(s){var b=document.getElementById("tb_"+id+"_"+s);if(b)b.className="tbtn"+(val===s?" t"+s:"");});
+  var rw=document.getElementById("rw_"+id);
+  if(rw){if(val==="part"||val==="miss"){rw.className="reason-wrap show "+(val==="miss"?"miss-r":"part-r");var rta=document.getElementById("rt_"+id);if(rta)rta.placeholder=val==="miss"?"Why was this missed?":"What was only partially completed?";}else{rw.className="reason-wrap";var rta=document.getElementById("rt_"+id);if(rta){rta.value="";state["r_"+id]="";rta.className="reason-ta";}}}
+  updateSummary();updateBadges();
+}
+
+function updateSummary() {
+  var done=0, part=0, miss=0, na=0;
+  for (var i=0; i<CATS.length; i++) {
+    var cat = CATS[i];
+    for (var j=0; j<cat.criteria.length; j++) {
+      var v = state[cat.criteria[j].id];
+      if (v==="done") done++;
+      else if (v==="part") part++;
+      else if (v==="miss") miss++;
+      else na++;
+    }
+  }
+  var logged = done+part+miss;
+  var pct = logged>0 ? Math.round((done+part*0.5)/logged*100) : null;
+  document.getElementById("sdone").textContent = done;
+  document.getElementById("spart").textContent = part;
+  document.getElementById("smiss").textContent = miss;
+  document.getElementById("sna").textContent = na;
+  var el = document.getElementById("sscore");
+  if (pct===null) { el.textContent="-"; el.className="mval"; }
+  else { el.textContent=pct+"%"; el.className="mval "+(pct>=80?"mg":pct>=50?"ma":"mr"); }
+}
+
+function catScore(cat) {
+  var vals = [];
+  for (var j=0; j<cat.criteria.length; j++) vals.push(state[cat.criteria[j].id]);
+  var logged = 0, pts = 0;
+  for (var k=0; k<vals.length; k++) {
+    if (vals[k]!=="na") { logged++; if(vals[k]==="done") pts+=1; else if(vals[k]==="part") pts+=0.5; }
+  }
+  if (!logged) return {label:"Not started",cls:"bn",pct:0};
+  var pct = Math.round(pts/logged*100);
+  if (pct===100) return {label:"Complete",cls:"bg",pct:100};
+  if (pct>=50) return {label:"Partial - "+pct+"%",cls:"ba",pct:pct};
+  return {label:"Needs attention - "+pct+"%",cls:"br",pct:pct};
+}
+
+function catPct(cat) { return catScore(cat).pct; }
+
+function updateBadges() {
+  for (var i=0; i<CATS.length; i++) {
+    var cat = CATS[i];
+    var sc = catScore(cat);
+    var b = document.getElementById("badge_"+cat.id);
+    if (b) { b.textContent=sc.label; b.className="badge "+sc.cls; }
+    var bar = document.getElementById("bar_"+cat.id);
+    if (bar) { bar.style.width=sc.pct+"%"; bar.style.background=sc.pct>=100?"#3B6D11":sc.pct>=50?"#EF9F27":"#E24B4A"; }
+  }
+}
+
+function toggleBody(bodyId, chevId) {
+  var b = document.getElementById(bodyId);
+  var c = document.getElementById(chevId);
+  if (!b || !c) return;
+  var isOpen = b.style.display !== "none";
+  b.style.display = isOpen ? "none" : "";
+  c.className = "chev" + (isOpen ? "" : " open");
+}
+
+function render() {
+  var wrap = document.getElementById("catwrap");
+  if (!wrap) return;
+  wrap.innerHTML = "";
+  for (var i=0; i<CATS.length; i++) {
+    var cat = CATS[i];
+    var sc = catScore(cat);
+    var catDiv = document.createElement("div");
+    catDiv.className = "cat";
+    var head = document.createElement("div");
+    head.className = "cathead";
+    head.setAttribute("onclick","toggleBody('cbody_"+cat.id+"','chev_"+cat.id+"')");
+    head.innerHTML = "<span class='catico'>&#9656;</span>"
+      + "<span class='cattitle'>"+cat.title+"</span>"
+      + "<span class='badge "+sc.cls+"' id='badge_"+cat.id+"'>"+sc.label+"</span>"
+      + "<span class='chev open' id='chev_"+cat.id+"'>&#8964;</span>";
+    var body = document.createElement("div");
+    body.className = "catbody";
+    body.id = "cbody_"+cat.id;
+    for (var j=0; j<cat.criteria.length; j++) {
+      var c = cat.criteria[j];
+      var row = document.createElement("div");
+      row.className = "crit";
+      row.innerHTML = "<div class='ctxt'><div class='clb'>"+c.label+"</div><div class='csub'>"+c.sub+"</div></div>"
+        +"<div class='togs'>"
+        +"<button class='tbtn' id='tb_"+c.id+"_done' onclick=\"setStatus('"+c.id+"','done')\">Done</button>"
+        +"<button class='tbtn' id='tb_"+c.id+"_part' onclick=\"setStatus('"+c.id+"','part')\">Partial</button>"
+        +"<button class='tbtn' id='tb_"+c.id+"_miss' onclick=\"setStatus('"+c.id+"','miss')\">Missed</button>"
+        +"</div>";
+      body.appendChild(row);
+      var rwd=document.createElement("div");rwd.className="reason-wrap";rwd.id="rw_"+c.id;
+      rwd.innerHTML="<div class='reason-lbl'>Reason *</div><textarea class='reason-ta' id='rt_"+c.id+"' rows='2' placeholder='Why was this missed?' oninput=\"state['r_"+c.id+"']=this.value;this.className='reason-ta';\"></textarea>";
+      body.appendChild(rwd);
+    }
+    var ta = document.createElement("textarea");
+    ta.className = "nota";
+    ta.id = "note_"+cat.id;
+    ta.placeholder = "Coaching notes, observations, commitments logged...";
+    ta.setAttribute("oninput","state['note_"+cat.id+"']=this.value");
+    body.appendChild(ta);
+    if (cat.metrics && cat.metrics.length) {
+      var mg = document.createElement("div");
+      mg.className = "metrics-grid";
+      for (var m=0; m<cat.metrics.length; m++) {
+        var met = cat.metrics[m];
+        var mi = document.createElement("div");
+        mi.className = "metric-inp";
+        mi.innerHTML = "<label>"+met.label+"</label>"
+          +"<input type='number' id='"+met.id+"' min='0' max='100' step='0.1' placeholder='-' oninput=\"state['"+met.id+"']=parseFloat(this.value)||0\">"
+          +"<span class='munit'>"+met.unit+"</span>";
+        mg.appendChild(mi);
+      }
+      body.appendChild(mg);
+    }
+    if (cat.inputs && cat.inputs.length) {
+      var ci = document.createElement("div");
+      ci.className = "cat-inputs";
+      for (var n=0; n<cat.inputs.length; n++) {
+        var inp = cat.inputs[n];
+        var irow = document.createElement("div");
+        irow.className = "cat-inp-row";
+        irow.innerHTML = "<label>"+inp.label+"</label>"
+          +"<textarea id='"+inp.id+"' placeholder='"+inp.placeholder+"' oninput=\"state['"+inp.id+"']=this.value\"></textarea>";
+        ci.appendChild(irow);
+      }
+      body.appendChild(ci);
+    }
+    var pw = document.createElement("div");
+    pw.className = "pwrap";
+    var pf = document.createElement("div");
+    pf.className = "pfill";
+    pf.id = "bar_"+cat.id;
+    pf.style.width = "0%";
+    pw.appendChild(pf);
+    body.appendChild(pw);
+    catDiv.appendChild(head);
+    catDiv.appendChild(body);
+    wrap.appendChild(catDiv);
+  }
+  updateBadges();
+}
+
+function overallPct() {
+  var vals=[];
+  for(var i=0;i<CATS.length;i++) for(var j=0;j<CATS[i].criteria.length;j++) vals.push(state[CATS[i].criteria[j].id]);
+  var done=0,part=0,miss=0;
+  for(var k=0;k<vals.length;k++){if(vals[k]==="done")done++;else if(vals[k]==="part")part++;else if(vals[k]==="miss")miss++;}
+  var logged=done+part+miss;
+  return logged>0?Math.round((done+part*0.5)/logged*100):0;
+}
+
+function buildMissedList() {
+  var gaps=[];
+  for(var i=0;i<CATS.length;i++) for(var j=0;j<CATS[i].criteria.length;j++) if(state[CATS[i].criteria[j].id]==="miss") gaps.push(CATS[i].criteria[j].label);
+  return gaps.join("; ");
+}
+
+function showSpBar(msg,type) {
+  var bar=document.getElementById("spbar");
+  bar.textContent=msg;
+  bar.className="spbar "+type;
+  bar.style.display="block";
+  bar.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+
+function submitToSharePoint() {
+  var rsm=document.getElementById("rsmsel").value;
+  var store=document.getElementById("storeinp").value.trim();
+  var date=document.getElementById("visitdt").value;
+  if(!store){showSpBar("Store name is required.","err");return;}
+  if(!date){showSpBar("Visit date is required.","err");return;}
+  var ul=[];for(var i=0;i<CATS.length;i++)for(var j=0;j<CATS[i].criteria.length;j++)if(state[CATS[i].criteria[j].id]==="na")ul.push(CATS[i].criteria[j].label);
+  if(ul.length){showSpBar("All criteria must be marked. "+ul.length+" item(s) not yet logged.","err");return;}
+  var mr=[];for(var i=0;i<CATS.length;i++)for(var j=0;j<CATS[i].criteria.length;j++){var c=CATS[i].criteria[j];if(state[c.id]==="part"||state[c.id]==="miss"){var rt=document.getElementById("rt_"+c.id);if(!rt||!rt.value.trim()){mr.push(c.id);if(rt)rt.className="reason-ta err";}}}
+  if(mr.length){showSpBar("Reason required for all Partial/Missed items. "+mr.length+" missing.","err");return;}
+  var pct=overallPct();
+  var grade=pct>=85?"On track":pct>=60?"Monitor - follow-up required":"Below standard - intervention required";
+  var payload={
+    RSM_District:rsm,
+    Store_Visited:store,
+    Visit_Date:date,
+    Overall_Score:pct,
+    Floor_Score:catPct(CATS[0]),
+    Conversion_Score:catPct(CATS[1]),
+    XSell_Score:catPct(CATS[2]),
+    Accountability_Score:catPct(CATS[3]),
+    Tasks_Score:catPct(CATS[4]),
+    Assessment:grade,
+    Missed_Items:buildMissedList(),
+    Notes_Floor:(document.getElementById("note_"+CATS[0].id)||{}).value||"",
+    Notes_Conversion:(document.getElementById("note_"+CATS[1].id)||{}).value||"",
+    Notes_XSell:(document.getElementById("note_"+CATS[2].id)||{}).value||"",
+    Notes_Accountability:(document.getElementById("note_"+CATS[3].id)||{}).value||"",
+    Notes_Tasks:(document.getElementById("note_"+CATS[4].id)||{}).value||"",
+    Conv_AGA:state["conv_aga"]||0,
+    Conv_BRS:state["conv_brs"]||0,
+    Conv_TV_Attach:state["conv_tv"]||0,
+    Conv_Internet_AGA:state["conv_inet_aga"]||0,
+    Conv_Internet_HUG:state["conv_inet_hug"]||0,
+    Acct_Set_Target:state["acct_set_target"]||"",
+    Acct_Written_Commitment:state["acct_written_commit"]||"",
+    Store_Manager_Email:document.getElementById("storeEmail").value||""
+  };
+  var btn=document.getElementById("spbtn");
+  btn.disabled=true;
+  showSpBar("Submitting to SharePoint...","sending");
+  fetch(PA_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)})
+  .then(function(res){
+    if(res.ok||res.status===202){showSpBar("Submitted successfully. Row created in RSM Compliance Tracker on VP Retail.","ok");}
+    else{showSpBar("Submission failed (status "+res.status+"). Check your Power Automate flow.","err");}
+    btn.disabled=false;
+  })
+  .catch(function(err){showSpBar("Network error: "+err.message,"err");btn.disabled=false;});
+}
+
+function fmtDate(d) {
+  try { var p=d.split("-"); return p[2]+"/"+p[1]+"/"+p[0]; } catch(e) { return d; }
+}
+
+function statusLabel(s) {
+  if (s==="done") return "Complete";
+  if (s==="part") return "Partial";
+  if (s==="miss") return "Missed";
+  return "Not logged";
+}
+
+function genReport() {
+  var rsm=document.getElementById("rsmsel").value;
+  var store=document.getElementById("storeinp").value.trim()||"Not specified";
+  var date=document.getElementById("visitdt").value||"Date not specified";
+  var done=0,part=0,miss=0,total=0;
+  for(var i=0;i<CATS.length;i++) for(var j=0;j<CATS[i].criteria.length;j++){total++;var v=state[CATS[i].criteria[j].id];if(v==="done")done++;else if(v==="part")part++;else if(v==="miss")miss++;}
+  var logged=done+part+miss;
+  var pct=logged>0?Math.round((done+part*0.5)/logged*100):0;
+  var grade=pct>=85?"On track - no immediate action required":pct>=60?"Monitor - follow-up required before next visit":"Below standard - intervention required";
+  var line="------------------------------------------------";
+  var lines=["CELLCOM COMMUNICATIONS","RSM DAILY COMPLIANCE REPORT",line,"RSM / District  : "+rsm,"Store visited   : "+store,"Date of visit   : "+fmtDate(date),"Overall score   : "+pct+"%","Breakdown       : "+done+" complete / "+part+" partial / "+miss+" missed / "+(total-logged)+" not logged",""];
+  for(var i=0;i<CATS.length;i++){
+    var cat=CATS[i];var sc=catScore(cat);
+    lines.push(">> "+cat.title.toUpperCase());
+    lines.push("   Status: "+sc.label);
+    for(var j=0;j<cat.criteria.length;j++){var c=cat.criteria[j];var rt5=document.getElementById("rt_"+c.id);var rs5=rt5&&rt5.value.trim()?" — "+rt5.value.trim():"";lines.push("   - "+c.label+": "+statusLabel(state[c.id])+rs5);}
+    if(cat.metrics&&cat.metrics.length){lines.push("   Conversion rates:");for(var m=0;m<cat.metrics.length;m++){var mv=state[cat.metrics[m].id];lines.push("     "+cat.metrics[m].label+": "+(mv||0)+cat.metrics[m].unit);}}
+    if(cat.inputs&&cat.inputs.length){for(var n=0;n<cat.inputs.length;n++){var iv=state[cat.inputs[n].id];if(iv)lines.push("   "+cat.inputs[n].label+": "+iv);}}
+    var noteEl=document.getElementById("note_"+cat.id);var noteVal=noteEl?noteEl.value.trim():"";
+    if(noteVal)lines.push("   Notes: "+noteVal);
+    lines.push("");
+  }
+  lines.push(line);
+  var gaps=[];
+  for(var i=0;i<CATS.length;i++) for(var j=0;j<CATS[i].criteria.length;j++) if(state[CATS[i].criteria[j].id]==="miss") gaps.push({cat:CATS[i].title,crit:CATS[i].criteria[j].label});
+  if(gaps.length){lines.push("PRIORITY GAPS:");var lastCat="";for(var g=0;g<gaps.length;g++){if(gaps[g].cat!==lastCat){lines.push("  "+gaps[g].cat);lastCat=gaps[g].cat;}lines.push("  -> "+gaps[g].crit);}lines.push("");}
+  lines.push("ASSESSMENT: "+grade);
+  var report=lines.join("\n");
+  document.getElementById("repbox").textContent=report;
+  document.getElementById("repsec").style.display="block";
+  document.getElementById("repsec").scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+function copyRep(){var t=document.getElementById("repbox").textContent;if(!t)genReport();navigator.clipboard.writeText(document.getElementById("repbox").textContent).then(function(){showToast("Report copied!");});}
+
+function shareIt(){
+  var data={rsm:document.getElementById("rsmsel").value,store:document.getElementById("storeinp").value,date:document.getElementById("visitdt").value,s:{}};
+  for(var i=0;i<CATS.length;i++){var cat=CATS[i];for(var j=0;j<cat.criteria.length;j++)data.s[cat.criteria[j].id]=state[cat.criteria[j].id];data.s["note_"+cat.id]=state["note_"+cat.id]||"";
+  if(cat.metrics)for(var m=0;m<cat.metrics.length;m++)data.s[cat.metrics[m].id]=state[cat.metrics[m].id]||0;
+  if(cat.inputs)for(var n=0;n<cat.inputs.length;n++)data.s[cat.inputs[n].id]=state[cat.inputs[n].id]||"";
+  }
+  var encoded=btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+  var url=window.location.origin+window.location.pathname+"?d="+encoded;
+  document.getElementById("shareurl").textContent=url;
+  var bar=document.getElementById("sharebar");bar.style.display="flex";
+  bar.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+
+function copyUrl(){navigator.clipboard.writeText(document.getElementById("shareurl").textContent).then(function(){showToast("Link copied!");});}
+
+function loadFromUrl(){
+  var params=new URLSearchParams(window.location.search);var d=params.get("d");if(!d)return;
+  try{
+    var data=JSON.parse(decodeURIComponent(escape(atob(d))));
+    if(data.rsm)document.getElementById("rsmsel").value=data.rsm;
+    if(data.store)document.getElementById("storeinp").value=data.store;
+    if(data.date)document.getElementById("visitdt").value=data.date;
+    if(data.s){for(var k in data.s){if(data.s.hasOwnProperty(k))state[k]=data.s[k];}for(var i=0;i<CATS.length;i++){var cat=CATS[i];for(var j=0;j<cat.criteria.length;j++){var cid=cat.criteria[j].id;var val=state[cid];if(val&&val!=="na"){var btn=document.getElementById("tb_"+cid+"_"+val);if(btn)btn.className="tbtn t"+val;}}var noteEl=document.getElementById("note_"+cat.id);if(noteEl)noteEl.value=state["note_"+cat.id]||"";
+    if(cat.metrics)for(var m=0;m<cat.metrics.length;m++){var mel=document.getElementById(cat.metrics[m].id);if(mel&&state[cat.metrics[m].id])mel.value=state[cat.metrics[m].id];}
+    if(cat.inputs)for(var n=0;n<cat.inputs.length;n++){var iel=document.getElementById(cat.inputs[n].id);if(iel&&state[cat.inputs[n].id])iel.value=state[cat.inputs[n].id];}
+    }}
+    updateSummary();updateBadges();
+  }catch(e){console.warn("load error",e);}
+}
+
+function resetAll(){
+  for(var i=0;i<CATS.length;i++){var cat=CATS[i];for(var j=0;j<cat.criteria.length;j++){var cid=cat.criteria[j].id;state[cid]="na";var statuses=["done","part","miss"];for(var s=0;s<statuses.length;s++){var b=document.getElementById("tb_"+cid+"_"+statuses[s]);if(b)b.className="tbtn";}}
+  state["r_"+cid]="";var rw6=document.getElementById("rw_"+cid);if(rw6)rw6.className="reason-wrap";var rt6=document.getElementById("rt_"+cid);if(rt6){rt6.value="";rt6.className="reason-ta";}
+  state["note_"+cat.id]="";var n=document.getElementById("note_"+cat.id);if(n)n.value="";
+  if(cat.metrics)for(var m=0;m<cat.metrics.length;m++){state[cat.metrics[m].id]=0;var mel=document.getElementById(cat.metrics[m].id);if(mel)mel.value="";}
+  if(cat.inputs)for(var ni=0;ni<cat.inputs.length;ni++){state[cat.inputs[ni].id]="";var iel=document.getElementById(cat.inputs[ni].id);if(iel)iel.value="";}
+  }
+  document.getElementById("repsec").style.display="none";
+  document.getElementById("sharebar").style.display="none";
+  var spb=document.getElementById("spbar");if(spb)spb.style.display="none";
+  history.replaceState(null,"",window.location.pathname);
+  updateSummary();updateBadges();
+}
+
+function showToast(msg){var t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(function(){t.classList.remove("show");},2200);}
+
+setToday();
+render();
+loadFromUrl();
+updateSummary();
+</script>
+</body>
+</html>
