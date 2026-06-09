@@ -197,6 +197,7 @@ input[type=date]{min-width:150px}
 <option value="Virgin Drummondville">Virgin Drummondville</option>
 </select>
 <input type="hidden" id="storeEmail">
+<input type="hidden" id="storeProvince">
     </div>
     <div class="fg">
       <div class="fl">Day of visit</div>
@@ -231,6 +232,14 @@ input[type=date]{min-width:150px}
 <div class="toast" id="toast"></div>
 <script>
 var PA_URL = "https://default86467dd1ecc640e099e2460446a42f.31.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/1710cc7213b34b5593254b5d500b995e/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=k8V-e0XanbZZcoeKcEEsFsOtSSsRI6uYBtMTcoOw0I4";
+var RSM_EMAILS = {
+  "RSM - District EAST": "mmittelstaedt@cellcom.ca",
+  "RSM - District NORTH EAST": "jlevere@cellcom.ca",
+  "RSM - District CENTRAL": "sfaisal@cellcom.ca",
+  "RSM - District CHARLIE": "dmarra@cellcom.ca",
+  "RSM - District ECHO": "jpilon@cellcom.ca",
+  "RSM - District DELTA": "gerin@cellcom.ca"
+};
 var STORES = [
   {name:"Bell Dolbeau",email:"managerDolbeau@cellcom.ca"},
   {name:"Bell Edmundston",email:"manageredmundston@cellcom.ca"},
@@ -298,9 +307,10 @@ var STORES = [
 function onStoreChange(){
   var sel=document.getElementById("storeinp");
   var store=sel.value;
-  var email="";
-  for(var i=0;i<STORES.length;i++){if(STORES[i].name===store){email=STORES[i].email;break;}}
+  var email="",province="";
+  for(var i=0;i<STORES.length;i++){if(STORES[i].name===store){email=STORES[i].email;province=STORES[i].province;break;}}
   document.getElementById("storeEmail").value=email;
+  document.getElementById("storeProvince").value=province;
 }
 
 var CATS = [
@@ -532,6 +542,233 @@ function showSpBar(msg,type) {
   bar.scrollIntoView({behavior:"smooth",block:"nearest"});
 }
 
+
+function buildEmailHTML(payload, rsm, store, date, province, rsmName) {
+  var fr = (province === "QC" || province === "NB");
+  var lang = {
+    subject:    fr ? "Rapport de visite de conformité – " : "Compliance Visit Report – ",
+    greeting:   fr ? "Bonjour," : "Hello,",
+    intro:      fr ? "Une visite de conformité a été complétée à <b>" + store + "</b> le <b>" + date + "</b> par <b>" + rsmName + "</b>." 
+                   : "A compliance visit was completed at <b>" + store + "</b> on <b>" + date + "</b> by <b>" + rsmName + "</b>.",
+    overall:    fr ? "RÉSULTAT GLOBAL" : "OVERALL SCORE",
+    complete:   fr ? "Complété" : "Complete",
+    partial:    fr ? "Partiel" : "Partial",
+    missed:     fr ? "Manqué" : "Missed",
+    assessment: fr ? "Évaluation" : "Assessment",
+    catLabels:  fr ? [
+      "Observation plancher & conversion en direct",
+      "Analyse de conversion & opportunités manquées",
+      "Coaching vente croisée (garantie, acc., BRSB)",
+      "Imputabilité du gérant & fixation d'objectifs",
+      "Tâches du gérant & standard d'exécution"
+    ] : [
+      "Floor observation & live conversion",
+      "Conversion & missed opportunity analysis",
+      "X-sell coaching (warranty, acc, BRSB)",
+      "Manager accountability & target setting",
+      "Manager tasks & execution standard"
+    ],
+    critLabels: fr ? [
+      ["Transactions en direct observées","Débreffage immédiat avec le rep & gérant","Notes de coaching partagées avec le gérant","Récap quotidien envoyé au gérant le même jour"],
+      ["Taux de conversion revu avant la visite","Fichier d'opportunités manquées revu","Agenda de coaching bâti à partir des chiffres","Gérant engagé sur 1-2 actions"],
+      ["Utilisation du Game Plan revue en magasin","Scénarios d'objections répétés","Gérant coaché pour animer la session seul","Vérifications de factures faites avec suivi"],
+      ["1:1 effectué – chiffres en premier","Objectifs fixés avec $ / % et échéance précise","Engagement écrit capturé","Engagement précédent revu en début de visite"],
+      ["Liste de tâches du gérant révisée","Actions claires assignées sur les tâches manquées","Cadence de révision structurée maintenue"]
+    ] : [
+      ["Live transactions observed per visit","Immediate debrief with rep & manager","Coaching notes shared with manager","Daily recap sent to manager same day"],
+      ["Conversion rate reviewed pre-visit","Missed opportunity file reviewed","Coaching agenda built from numbers","Manager committed to 1-2 actions"],
+      ["Game Plan utilisation reviewed in-store","Objection scenarios rehearsed","Manager coached to run session independently","Invoice verifications done with follow-up"],
+      ["1:1 conducted – metrics-first","Targets set with specific $ / % and deadline","Written commitment captured","Prior commitment reviewed at start"],
+      ["Store Manager task list reviewed","Clear actions assigned on missed tasks","Structured review cadence maintained"]
+    ],
+    statusLabels: fr ? {done:"✅ Complété",part:"⚠️ Partiel",miss:"❌ Manqué",na:"— Non consigné"} 
+                     : {done:"✅ Complete",part:"⚠️ Partial",miss:"❌ Missed",na:"— Not logged"},
+    conversion:  fr ? "Taux de conversion" : "Conversion Rates",
+    setTarget:   fr ? "Objectif fixé" : "Set Target",
+    writtenComm: fr ? "Engagement écrit du gérant" : "Written Commitment",
+    notes:       fr ? "Notes de coaching" : "Coaching Notes",
+    missed_items:fr ? "Éléments manqués" : "Missed Items",
+    footer:      fr ? "Ce rapport a été généré automatiquement par le Système de suivi RSM de Cellcom Communications."
+                    : "This report was automatically generated by the Cellcom Communications RSM Tracking System.",
+    gradeMap: fr ? {
+      "On track":"En bonne voie",
+      "Monitor - follow-up required":"À surveiller – suivi requis",
+      "Below standard - intervention required":"Sous la norme – intervention requise"
+    } : null
+  };
+
+  var catIds = ["floor","conversion","xsell","acct","tasks"];
+  var critIds = [
+    ["floor_obs","floor_debrief","floor_notes","floor_recap"],
+    ["conv_rate","conv_missed","conv_agenda","conv_commit"],
+    ["xsell_gp","xsell_reh","xsell_mgr","xsell_inv"],
+    ["acc_1on1","acc_tgt","acc_wrt","acc_rev"],
+    ["tasks_rev","tasks_act","tasks_cad"]
+  ];
+
+  function scoreColor(pct) {
+    if (pct >= 85) return "#27500A";
+    if (pct >= 60) return "#633806";
+    return "#791F1F";
+  }
+  function scoreBg(pct) {
+    if (pct >= 85) return "#EAF3DE";
+    if (pct >= 60) return "#FAEEDA";
+    return "#FCEBEB";
+  }
+  function scoreBdr(pct) {
+    if (pct >= 85) return "#3B6D11";
+    if (pct >= 60) return "#854F0B";
+    return "#A32D2D";
+  }
+
+  var overall = payload.Overall_Score || 0;
+  var assessRaw = payload.Assessment || "";
+  var assess = (fr && lang.gradeMap && lang.gradeMap[assessRaw]) ? lang.gradeMap[assessRaw] : assessRaw;
+
+  var catScores = [
+    payload.Floor_Score || 0,
+    payload.Conversion_Score || 0,
+    payload.XSell_Score || 0,
+    payload.Accountability_Score || 0,
+    payload.Tasks_Score || 0
+  ];
+  var catNotes = [
+    payload.Notes_Floor || "",
+    payload.Notes_Conversion || "",
+    payload.Notes_XSell || "",
+    payload.Notes_Accountability || "",
+    payload.Notes_Tasks || ""
+  ];
+
+  // Build category rows HTML
+  var catRows = "";
+  for (var ci = 0; ci < 5; ci++) {
+    var sc = catScores[ci];
+    var crits = critIds[ci];
+    var critHtml = "";
+    for (var cj = 0; cj < crits.length; cj++) {
+      var val = payload["crit_" + crits[cj]] || "na";
+      var lbl = lang.critLabels[ci][cj];
+      var statusLbl = lang.statusLabels[val] || lang.statusLabels["na"];
+      var rowBg = val === "done" ? "#F4FAF0" : val === "part" ? "#FDF6EC" : val === "miss" ? "#FDF2F2" : "#FAFAFA";
+      var reasonVal = payload["reason_" + crits[cj]] || "";
+      var reasonHtml = (reasonVal && (val === "part" || val === "miss")) 
+        ? '<div style="font-size:11px;color:#666;margin-top:3px;padding-left:8px;border-left:2px solid #ccc;font-style:italic;">' + reasonVal + '</div>' : "";
+      critHtml += '<tr style="background:' + rowBg + ';">'
+        + '<td style="padding:7px 10px;font-size:12px;color:#333;border-bottom:1px solid #eee;">' + lbl + reasonHtml + '</td>'
+        + '<td style="padding:7px 10px;font-size:12px;white-space:nowrap;text-align:right;border-bottom:1px solid #eee;">' + statusLbl + '</td>'
+        + '</tr>';
+    }
+
+    // Extra fields per category
+    var extraHtml = "";
+    if (ci === 1) { // Conversion
+      var convRows = [
+        ["AGA", payload.Conv_AGA],
+        ["BRS", payload.Conv_BRS],
+        ["TV Attach", payload.Conv_TV_Attach],
+        [fr ? "Internet sur AGA" : "Internet on AGA", payload.Conv_Internet_AGA],
+        [fr ? "Internet sur HUG" : "Internet on HUG", payload.Conv_Internet_HUG]
+      ];
+      extraHtml = '<tr><td colspan="2" style="padding:10px 10px 4px;background:#F7F7F5;">'
+        + '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#888;margin-bottom:6px;">' + lang.conversion + '</div>'
+        + '<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">'
+        + convRows.map(function(r){
+            var v = r[1];
+            var vStr = (v !== undefined && v !== null && v !== "" && v !== 0) ? v + "%" : "—";
+            var col = (v && v >= 70) ? "#27500A" : (v && v >= 50) ? "#633806" : (v && v > 0) ? "#791F1F" : "#999";
+            return '<tr><td style="font-size:12px;color:#444;padding:3px 0;">' + r[0] + '</td>'
+              + '<td style="font-size:13px;font-weight:600;color:' + col + ';text-align:right;padding:3px 0;">' + vStr + '</td></tr>';
+          }).join("")
+        + '</table></td></tr>';
+    }
+    if (ci === 3) { // Accountability
+      var tgt = payload.Acct_Set_Target || "";
+      var cmt = payload.Acct_Written_Commitment || "";
+      if (tgt || cmt) {
+        extraHtml = '<tr><td colspan="2" style="padding:10px;background:#F7F7F5;">';
+        if (tgt) extraHtml += '<div style="margin-bottom:6px;"><span style="font-size:11px;font-weight:600;text-transform:uppercase;color:#888;">' + lang.setTarget + '</span><div style="font-size:13px;color:#333;margin-top:3px;">' + tgt + '</div></div>';
+        if (cmt) extraHtml += '<div><span style="font-size:11px;font-weight:600;text-transform:uppercase;color:#888;">' + lang.writtenComm + '</span><div style="font-size:13px;color:#333;margin-top:3px;">' + cmt + '</div></div>';
+        extraHtml += '</td></tr>';
+      }
+    }
+
+    var noteHtml = catNotes[ci] ? '<tr><td colspan="2" style="padding:10px;background:#FAFAFA;border-top:1px solid #eee;">'
+      + '<div style="font-size:11px;font-weight:600;text-transform:uppercase;color:#888;margin-bottom:4px;">' + lang.notes + '</div>'
+      + '<div style="font-size:12px;color:#444;line-height:1.6;">' + catNotes[ci].replace(/\n/g,"<br>") + '</div>'
+      + '</td></tr>' : "";
+
+    catRows += '<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-bottom:16px;border:1px solid ' + scoreBdr(sc) + ';border-radius:8px;overflow:hidden;">'
+      + '<tr style="background:' + scoreBg(sc) + ';">'
+      + '<td style="padding:10px 14px;font-size:13px;font-weight:600;color:' + scoreColor(sc) + ';">' + lang.catLabels[ci] + '</td>'
+      + '<td style="padding:10px 14px;text-align:right;font-size:20px;font-weight:700;color:' + scoreColor(sc) + ';">' + sc + '%</td>'
+      + '</tr>'
+      + critHtml
+      + extraHtml
+      + noteHtml
+      + '</table>';
+  }
+
+  var missedItems = payload.Missed_Items || "";
+  var missedHtml = missedItems ? '<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-bottom:16px;border:1px solid #A32D2D;border-radius:8px;overflow:hidden;">'
+    + '<tr style="background:#FCEBEB;"><td style="padding:10px 14px;font-size:13px;font-weight:600;color:#791F1F;">⚠️ ' + lang.missed_items + '</td></tr>'
+    + '<tr><td style="padding:10px 14px;font-size:12px;color:#444;line-height:1.8;">' + missedItems.split("; ").map(function(m){return "• " + m;}).join("<br>") + '</td></tr>'
+    + '</table>' : "";
+
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body style="margin:0;padding:0;background:#f0f0ec;font-family:Arial,sans-serif;">'
+    + '<table width="100%" cellpadding="0" cellspacing="0" style="background:#f0f0ec;padding:24px 0;">'
+    + '<tr><td align="center">'
+    + '<table width="620" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:12px;overflow:hidden;border:1px solid #ddd;">'
+
+    // Header
+    + '<tr><td style="background:#1a1a18;padding:24px 32px;">'
+    + '<div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#888;margin-bottom:4px;">Cellcom Communications</div>'
+    + '<div style="font-size:20px;font-weight:700;color:#fff;">' + (fr ? "Rapport de conformité RSM" : "RSM Compliance Report") + '</div>'
+    + '</td></tr>'
+
+    // Visit info bar
+    + '<tr><td style="background:#f7f7f5;padding:16px 32px;border-bottom:1px solid #e8e8e8;">'
+    + '<table width="100%" cellpadding="0" cellspacing="0"><tr>'
+    + '<td style="font-size:12px;color:#666;">' + (fr ? "Magasin" : "Store") + '<br><b style="font-size:14px;color:#1a1a18;">' + store + '</b></td>'
+    + '<td style="font-size:12px;color:#666;">' + (fr ? "Date de visite" : "Visit Date") + '<br><b style="font-size:14px;color:#1a1a18;">' + date + '</b></td>'
+    + '<td style="font-size:12px;color:#666;">RSM<br><b style="font-size:14px;color:#1a1a18;">' + rsmName + '</b></td>'
+    + '</tr></table>'
+    + '</td></tr>'
+
+    // Overall score
+    + '<tr><td style="padding:24px 32px 16px;">'
+    + '<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border:1px solid ' + scoreBdr(overall) + ';border-radius:8px;overflow:hidden;margin-bottom:24px;">'
+    + '<tr style="background:' + scoreBg(overall) + ';">'
+    + '<td style="padding:16px 20px;">'
+    + '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:' + scoreColor(overall) + ';margin-bottom:4px;">' + lang.overall + '</div>'
+    + '<div style="font-size:36px;font-weight:700;color:' + scoreColor(overall) + ';line-height:1;">' + overall + '%</div>'
+    + '<div style="font-size:12px;color:' + scoreColor(overall) + ';margin-top:6px;">' + assess + '</div>'
+    + '</td>'
+    + '<td style="padding:16px 20px;text-align:right;vertical-align:top;">'
+    + '<table cellpadding="4" cellspacing="0"><tr>'
+    + '<td style="font-size:12px;color:#27500A;background:#EAF3DE;padding:4px 10px;border-radius:4px;margin:2px;">' + lang.complete + ': ' + payload.Complete_Count + '</td>'
+    + '<td style="font-size:12px;color:#633806;background:#FAEEDA;padding:4px 10px;border-radius:4px;">⚠ ' + lang.partial + ': ' + payload.Partial_Count + '</td>'
+    + '</tr><tr>'
+    + '<td colspan="2" style="text-align:right;padding-top:4px;"><span style="font-size:12px;color:#791F1F;background:#FCEBEB;padding:4px 10px;border-radius:4px;">✕ ' + lang.missed + ': ' + payload.Missed_Count + '</span></td>'
+    + '</tr></table>'
+    + '</td></tr>'
+    + '</table>'
+
+    // Category sections
+    + catRows
+    + missedHtml
+
+    // Footer
+    + '<div style="padding:0 0 16px;font-size:11px;color:#aaa;text-align:center;line-height:1.6;">' + lang.footer + '</div>'
+    + '</td></tr>'
+    + '</table>'
+    + '</td></tr></table>'
+    + '</body></html>';
+
+  return html;
+}
+
 function submitToSharePoint() {
   var rsm=document.getElementById("rsmsel").value;
   var store=document.getElementById("storeinp").value.trim();
@@ -544,6 +781,9 @@ function submitToSharePoint() {
   if(mr.length){showSpBar("Reason required for all Partial/Missed items. "+mr.length+" missing.","err");return;}
   var pct=overallPct();
   var grade=pct>=85?"On track":pct>=60?"Monitor - follow-up required":"Below standard - intervention required";
+  var done=parseInt(document.getElementById("sdone").textContent)||0;
+  var part=parseInt(document.getElementById("spart").textContent)||0;
+  var miss=parseInt(document.getElementById("smiss").textContent)||0;
   var payload={
     RSM_District:rsm,
     Store_Visited:store,
@@ -568,8 +808,54 @@ function submitToSharePoint() {
     Conv_Internet_HUG:state["conv_inet_hug"]||0,
     Acct_Set_Target:state["acct_set_target"]||"",
     Acct_Written_Commitment:state["acct_written_commit"]||"",
-    Store_Manager_Email:document.getElementById("storeEmail").value||""
+    Store_Manager_Email:document.getElementById("storeEmail").value||"",
+    Store_Province:document.getElementById("storeProvince").value||"",
+    RSM_Email:RSM_EMAILS[rsm]||"",
+    Complete_Count:done,
+    Partial_Count:part,
+    Missed_Count:miss,
+    crit_floor_obs:state["floor_obs"]||"na",
+    crit_floor_debrief:state["floor_debrief"]||"na",
+    crit_floor_notes:state["floor_notes"]||"na",
+    crit_floor_recap:state["floor_recap"]||"na",
+    crit_conv_rate:state["conv_rate"]||"na",
+    crit_conv_missed:state["conv_missed"]||"na",
+    crit_conv_agenda:state["conv_agenda"]||"na",
+    crit_conv_commit:state["conv_commit"]||"na",
+    crit_xsell_gp:state["xsell_gp"]||"na",
+    crit_xsell_reh:state["xsell_reh"]||"na",
+    crit_xsell_mgr:state["xsell_mgr"]||"na",
+    crit_xsell_inv:state["xsell_inv"]||"na",
+    crit_acc_1on1:state["acc_1on1"]||"na",
+    crit_acc_tgt:state["acc_tgt"]||"na",
+    crit_acc_wrt:state["acc_wrt"]||"na",
+    crit_acc_rev:state["acc_rev"]||"na",
+    crit_tasks_rev:state["tasks_rev"]||"na",
+    crit_tasks_act:state["tasks_act"]||"na",
+    crit_tasks_cad:state["tasks_cad"]||"na",
+    reason_floor_obs:state["r_floor_obs"]||"",
+    reason_floor_debrief:state["r_floor_debrief"]||"",
+    reason_floor_notes:state["r_floor_notes"]||"",
+    reason_floor_recap:state["r_floor_recap"]||"",
+    reason_conv_rate:state["r_conv_rate"]||"",
+    reason_conv_missed:state["r_conv_missed"]||"",
+    reason_conv_agenda:state["r_conv_agenda"]||"",
+    reason_conv_commit:state["r_conv_commit"]||"",
+    reason_xsell_gp:state["r_xsell_gp"]||"",
+    reason_xsell_reh:state["r_xsell_reh"]||"",
+    reason_xsell_mgr:state["r_xsell_mgr"]||"",
+    reason_xsell_inv:state["r_xsell_inv"]||"",
+    reason_acc_1on1:state["r_acc_1on1"]||"",
+    reason_acc_tgt:state["r_acc_tgt"]||"",
+    reason_acc_wrt:state["r_acc_wrt"]||"",
+    reason_acc_rev:state["r_acc_rev"]||"",
+    reason_tasks_rev:state["r_tasks_rev"]||"",
+    reason_tasks_act:state["r_tasks_act"]||"",
+    reason_tasks_cad:state["r_tasks_cad"]||""
   };
+  var province=document.getElementById("storeProvince").value||"";
+  var rsmName=rsm;
+  payload.Email_HTML=buildEmailHTML(payload,rsm,store,date,province,rsmName);
   var btn=document.getElementById("spbtn");
   btn.disabled=true;
   showSpBar("Submitting to SharePoint...","sending");
